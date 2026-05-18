@@ -8,8 +8,6 @@
 open! Sexplib.Conv
 open Tree_sitter_run
 
-type float_literal = Token.t
-
 type anon_choice_LF_249c99f = [
     `LF of Token.t (* "\n" *)
   | `SEMI of Token.t (* ";" *)
@@ -20,34 +18,34 @@ type anon_choice_new_0342769 = [
   | `Make of Token.t (* "make" *)
 ]
 
-type identifier = Token.t
-
-type raw_string_literal = Token.t
+type float_literal = Token.t
 
 type int_literal = Token.t
 
 type escape_sequence = Token.t
 
-type imaginary_literal = Token.t
+type identifier = Token.t
 
-type rune_literal = Token.t
+type interpreted_string_literal_basic_content =
+  Token.t (* pattern "[^\"\\n\\\\]+" *)
+
+type raw_string_literal = Token.t
 
 type anon_choice_EQ_4ccabd6 = [
     `EQ of Token.t (* "=" *)
   | `COLONEQ of Token.t (* ":=" *)
 ]
 
-type interpreted_string_literal_basic_content =
-  Token.t (* pattern "[^\"\\n\\\\]+" *)
+type rune_literal = Token.t
 
-type constraint_term = (Token.t (* "~" *) option * identifier (*tok*))
-
-type empty_labeled_statement = (identifier (*tok*) * Token.t (* ":" *))
+type imaginary_literal = Token.t
 
 type field_name_list = (
     identifier (*tok*)
   * (Token.t (* "," *) * identifier (*tok*)) list (* zero or more *)
 )
+
+type empty_labeled_statement = (identifier (*tok*) * Token.t (* ":" *))
 
 type qualified_type = (
     identifier (*tok*) * Token.t (* "." *) * identifier (*tok*)
@@ -194,6 +192,8 @@ and const_spec = (
   * (Token.t (* "," *) * identifier (*tok*)) list (* zero or more *)
   * (type_ option * Token.t (* "=" *) * expression_list) option
 )
+
+and constraint_term = (Token.t (* "~" *) option * simple_type)
 
 and declaration = [
     `Const_decl of (
@@ -686,21 +686,21 @@ type source_file =
 
 type blank_identifier (* inlined *) = Token.t (* "_" *)
 
-type iota (* inlined *) = Token.t (* "iota" *)
+type nil (* inlined *) = Token.t (* "nil" *)
 
 type fallthrough_statement (* inlined *) = Token.t (* "fallthrough" *)
 
+type dot (* inlined *) = Token.t (* "." *)
+
 type false_ (* inlined *) = Token.t (* "false" *)
-
-type empty_statement (* inlined *) = Token.t (* ";" *)
-
-type nil (* inlined *) = Token.t (* "nil" *)
 
 type comment (* inlined *) = Token.t
 
-type true_ (* inlined *) = Token.t (* "true" *)
+type iota (* inlined *) = Token.t (* "iota" *)
 
-type dot (* inlined *) = Token.t (* "." *)
+type empty_statement (* inlined *) = Token.t (* ";" *)
+
+type true_ (* inlined *) = Token.t (* "true" *)
 
 type field_identifier (* inlined *) = identifier (*tok*)
 
@@ -719,9 +719,12 @@ type interpreted_string_literal (* inlined *) = (
   * Token.t (* "\"" *)
 )
 
-type continue_statement (* inlined *) = (
-    Token.t (* "continue" *)
-  * identifier (*tok*) option
+type goto_statement (* inlined *) = (
+    Token.t (* "goto" *) * identifier (*tok*)
+)
+
+type package_clause (* inlined *) = (
+    Token.t (* "package" *) * identifier (*tok*)
 )
 
 type break_statement (* inlined *) = (
@@ -729,17 +732,9 @@ type break_statement (* inlined *) = (
   * identifier (*tok*) option
 )
 
-type package_clause (* inlined *) = (
-    Token.t (* "package" *) * identifier (*tok*)
-)
-
-type goto_statement (* inlined *) = (
-    Token.t (* "goto" *) * identifier (*tok*)
-)
-
-type constraint_elem (* inlined *) = (
-    constraint_term
-  * (Token.t (* "|" *) * constraint_term) list (* zero or more *)
+type continue_statement (* inlined *) = (
+    Token.t (* "continue" *)
+  * identifier (*tok*) option
 )
 
 type assignment_statement (* inlined *) = (
@@ -785,6 +780,11 @@ type const_declaration (* inlined *) = (
           * Token.t (* ")" *)
         )
     ]
+)
+
+type constraint_elem (* inlined *) = (
+    constraint_term
+  * (Token.t (* "|" *) * constraint_term) list (* zero or more *)
 )
 
 type dec_statement (* inlined *) = (expression * Token.t (* "--" *))
@@ -987,19 +987,19 @@ type variadic_parameter_declaration (* inlined *) = (
   * type_
 )
 
-type method_declaration (* inlined *) = (
+type function_declaration (* inlined *) = (
     Token.t (* "func" *)
-  * parameter_list
   * identifier (*tok*)
+  * type_parameter_list option
   * parameter_list
   * anon_choice_param_list_29faba4 option
   * block option
 )
 
-type function_declaration (* inlined *) = (
+type method_declaration (* inlined *) = (
     Token.t (* "func" *)
+  * parameter_list
   * identifier (*tok*)
-  * type_parameter_list option
   * parameter_list
   * anon_choice_param_list_29faba4 option
   * block option
