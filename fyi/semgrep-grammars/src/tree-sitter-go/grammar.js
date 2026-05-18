@@ -375,7 +375,7 @@ module.exports = grammar({
        $.method_spec, $.interface_type_name, $.constraint_elem, $.struct_elem
     ),
 
-    interface_type_name: $ => choice($._type_identifier, $.qualified_type),
+    interface_type_name: $ => prec(1, choice($._type_identifier, $.qualified_type)),
 
     constraint_elem: $ => seq(
       $.constraint_term,
@@ -384,7 +384,7 @@ module.exports = grammar({
 
     constraint_term: $ => prec(-1, seq(
       optional('~'),
-      $._type_identifier,
+      $._simple_type,
     )),
 
     struct_elem: $ => seq(

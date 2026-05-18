@@ -19,9 +19,6 @@ let token (env : env) (tok : Tree_sitter_run.Token.t) =
 let blank (env : env) () =
   R.Tuple []
 
-let map_float_literal (env : env) (tok : CST.float_literal) =
-  (* float_literal *) token env tok
-
 let map_anon_choice_LF_249c99f (env : env) (x : CST.anon_choice_LF_249c99f) =
   (match x with
   | `LF tok -> R.Case ("LF",
@@ -42,11 +39,8 @@ let map_anon_choice_new_0342769 (env : env) (x : CST.anon_choice_new_0342769) =
     )
   )
 
-let map_identifier (env : env) (tok : CST.identifier) =
-  (* identifier *) token env tok
-
-let map_raw_string_literal (env : env) (tok : CST.raw_string_literal) =
-  (* raw_string_literal *) token env tok
+let map_float_literal (env : env) (tok : CST.float_literal) =
+  (* float_literal *) token env tok
 
 let map_int_literal (env : env) (tok : CST.int_literal) =
   (* int_literal *) token env tok
@@ -54,11 +48,14 @@ let map_int_literal (env : env) (tok : CST.int_literal) =
 let map_escape_sequence (env : env) (tok : CST.escape_sequence) =
   (* escape_sequence *) token env tok
 
-let map_imaginary_literal (env : env) (tok : CST.imaginary_literal) =
-  (* imaginary_literal *) token env tok
+let map_identifier (env : env) (tok : CST.identifier) =
+  (* identifier *) token env tok
 
-let map_rune_literal (env : env) (tok : CST.rune_literal) =
-  (* rune_literal *) token env tok
+let map_interpreted_string_literal_basic_content (env : env) (tok : CST.interpreted_string_literal_basic_content) =
+  (* pattern "[^\"\\n\\\\]+" *) token env tok
+
+let map_raw_string_literal (env : env) (tok : CST.raw_string_literal) =
+  (* raw_string_literal *) token env tok
 
 let map_anon_choice_EQ_4ccabd6 (env : env) (x : CST.anon_choice_EQ_4ccabd6) =
   (match x with
@@ -70,24 +67,11 @@ let map_anon_choice_EQ_4ccabd6 (env : env) (x : CST.anon_choice_EQ_4ccabd6) =
     )
   )
 
-let map_interpreted_string_literal_basic_content (env : env) (tok : CST.interpreted_string_literal_basic_content) =
-  (* pattern "[^\"\\n\\\\]+" *) token env tok
+let map_rune_literal (env : env) (tok : CST.rune_literal) =
+  (* rune_literal *) token env tok
 
-let map_constraint_term (env : env) ((v1, v2) : CST.constraint_term) =
-  let v1 =
-    (match v1 with
-    | Some tok -> R.Option (Some (
-        (* "~" *) token env tok
-      ))
-    | None -> R.Option None)
-  in
-  let v2 = (* identifier *) token env v2 in
-  R.Tuple [v1; v2]
-
-let map_empty_labeled_statement (env : env) ((v1, v2) : CST.empty_labeled_statement) =
-  let v1 = (* identifier *) token env v1 in
-  let v2 = (* ":" *) token env v2 in
-  R.Tuple [v1; v2]
+let map_imaginary_literal (env : env) (tok : CST.imaginary_literal) =
+  (* imaginary_literal *) token env tok
 
 let map_field_name_list (env : env) ((v1, v2) : CST.field_name_list) =
   let v1 = (* identifier *) token env v1 in
@@ -98,6 +82,11 @@ let map_field_name_list (env : env) ((v1, v2) : CST.field_name_list) =
       R.Tuple [v1; v2]
     ) v2)
   in
+  R.Tuple [v1; v2]
+
+let map_empty_labeled_statement (env : env) ((v1, v2) : CST.empty_labeled_statement) =
+  let v1 = (* identifier *) token env v1 in
+  let v2 = (* ":" *) token env v2 in
   R.Tuple [v1; v2]
 
 let map_qualified_type (env : env) ((v1, v2, v3) : CST.qualified_type) =
@@ -445,6 +434,17 @@ and map_const_spec (env : env) ((v1, v2, v3) : CST.const_spec) =
     | None -> R.Option None)
   in
   R.Tuple [v1; v2; v3]
+
+and map_constraint_term (env : env) ((v1, v2) : CST.constraint_term) =
+  let v1 =
+    (match v1 with
+    | Some tok -> R.Option (Some (
+        (* "~" *) token env tok
+      ))
+    | None -> R.Option None)
+  in
+  let v2 = map_simple_type env v2 in
+  R.Tuple [v1; v2]
 
 and map_declaration (env : env) (x : CST.declaration) =
   (match x with
