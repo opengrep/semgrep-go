@@ -91,6 +91,11 @@ module.exports = grammar({
     [$.func_literal, $.function_type],
     [$.function_type],
     [$.parameter_declaration, $._simple_type],
+    [$.type_parameter_declaration, $.type_arguments],
+    [$.type_parameter_declaration, $._simple_type, $._expression],
+    [$.type_parameter_declaration, $.generic_type, $._expression],
+    [$.type_parameter_declaration, $._expression],
+    [$.type_parameter_declaration, $._simple_type],
   ],
 
   supertypes: $ => [
@@ -219,9 +224,14 @@ module.exports = grammar({
 
     type_parameter_list: $ => seq(
       '[',
-      commaSep1($.parameter_declaration),
+      commaSep1($.type_parameter_declaration),
       optional(','),
       ']'
+    ),
+
+    type_parameter_declaration: $ => seq(
+      commaSep1(field('name', $.identifier)),
+      field('type', choice($._type, $.constraint_elem))
     ),
 
     parameter_list: $ => seq(
