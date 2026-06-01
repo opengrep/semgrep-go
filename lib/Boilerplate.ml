@@ -177,8 +177,16 @@ and map_anon_choice_lit_elem_0952f3f (env : env) (x : CST.anon_choice_lit_elem_0
 
 and map_anon_choice_param_decl_18823e5 (env : env) (x : CST.anon_choice_param_decl_18823e5) =
   (match x with
-  | `Param_decl x -> R.Case ("Param_decl",
-      map_parameter_declaration env x
+  | `Param_decl (v1, v2) -> R.Case ("Param_decl",
+      let v1 =
+        (match v1 with
+        | Some x -> R.Option (Some (
+            map_field_name_list env x
+          ))
+        | None -> R.Option None)
+      in
+      let v2 = map_type_ env v2 in
+      R.Tuple [v1; v2]
     )
   | `Vari_param_decl (v1, v2, v3) -> R.Case ("Vari_param_decl",
       let v1 =
@@ -434,6 +442,17 @@ and map_const_spec (env : env) ((v1, v2, v3) : CST.const_spec) =
     | None -> R.Option None)
   in
   R.Tuple [v1; v2; v3]
+
+and map_constraint_elem (env : env) ((v1, v2) : CST.constraint_elem) =
+  let v1 = map_constraint_term env v1 in
+  let v2 =
+    R.List (List.map (fun (v1, v2) ->
+      let v1 = (* "|" *) token env v1 in
+      let v2 = map_constraint_term env v2 in
+      R.Tuple [v1; v2]
+    ) v2)
+  in
+  R.Tuple [v1; v2]
 
 and map_constraint_term (env : env) ((v1, v2) : CST.constraint_term) =
   let v1 =
@@ -919,16 +938,8 @@ and map_interface_body (env : env) (x : CST.interface_body) =
   | `Inte_type_name x -> R.Case ("Inte_type_name",
       map_interface_type_name env x
     )
-  | `Cons_elem (v1, v2) -> R.Case ("Cons_elem",
-      let v1 = map_constraint_term env v1 in
-      let v2 =
-        R.List (List.map (fun (v1, v2) ->
-          let v1 = (* "|" *) token env v1 in
-          let v2 = map_constraint_term env v2 in
-          R.Tuple [v1; v2]
-        ) v2)
-      in
-      R.Tuple [v1; v2]
+  | `Cons_elem x -> R.Case ("Cons_elem",
+      map_constraint_elem env x
     )
   | `Struct_elem (v1, v2) -> R.Case ("Struct_elem",
       let v1 = map_struct_term env v1 in
@@ -994,17 +1005,6 @@ and map_map_type (env : env) ((v1, v2, v3, v4, v5) : CST.map_type) =
   let v4 = (* "]" *) token env v4 in
   let v5 = map_type_ env v5 in
   R.Tuple [v1; v2; v3; v4; v5]
-
-and map_parameter_declaration (env : env) ((v1, v2) : CST.parameter_declaration) =
-  let v1 =
-    (match v1 with
-    | Some x -> R.Option (Some (
-        map_field_name_list env x
-      ))
-    | None -> R.Option None)
-  in
-  let v2 = map_type_ env v2 in
-  R.Tuple [v1; v2]
 
 and map_parameter_list (env : env) ((v1, v2, v3) : CST.parameter_list) =
   let v1 = (* "(" *) token env v1 in
@@ -1527,13 +1527,34 @@ and map_type_case (env : env) ((v1, v2, v3, v4, v5) : CST.type_case) =
   in
   R.Tuple [v1; v2; v3; v4; v5]
 
+and map_type_parameter_declaration (env : env) ((v1, v2, v3) : CST.type_parameter_declaration) =
+  let v1 = (* identifier *) token env v1 in
+  let v2 =
+    R.List (List.map (fun (v1, v2) ->
+      let v1 = (* "," *) token env v1 in
+      let v2 = (* identifier *) token env v2 in
+      R.Tuple [v1; v2]
+    ) v2)
+  in
+  let v3 =
+    (match v3 with
+    | `Choice_simple_type x -> R.Case ("Choice_simple_type",
+        map_type_ env x
+      )
+    | `Cons_elem x -> R.Case ("Cons_elem",
+        map_constraint_elem env x
+      )
+    )
+  in
+  R.Tuple [v1; v2; v3]
+
 and map_type_parameter_list (env : env) ((v1, v2, v3, v4, v5) : CST.type_parameter_list) =
   let v1 = (* "[" *) token env v1 in
-  let v2 = map_parameter_declaration env v2 in
+  let v2 = map_type_parameter_declaration env v2 in
   let v3 =
     R.List (List.map (fun (v1, v2) ->
       let v1 = (* "," *) token env v1 in
-      let v2 = map_parameter_declaration env v2 in
+      let v2 = map_type_parameter_declaration env v2 in
       R.Tuple [v1; v2]
     ) v3)
   in

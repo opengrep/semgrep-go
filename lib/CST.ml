@@ -91,7 +91,7 @@ and anon_choice_lit_elem_0952f3f = [
 ]
 
 and anon_choice_param_decl_18823e5 = [
-    `Param_decl of parameter_declaration
+    `Param_decl of (field_name_list option * type_)
   | `Vari_param_decl of (
         identifier (*tok*) option
       * Token.t (* "..." *)
@@ -191,6 +191,11 @@ and const_spec = (
     identifier (*tok*)
   * (Token.t (* "," *) * identifier (*tok*)) list (* zero or more *)
   * (type_ option * Token.t (* "=" *) * expression_list) option
+)
+
+and constraint_elem = (
+    constraint_term
+  * (Token.t (* "|" *) * constraint_term) list (* zero or more *)
 )
 
 and constraint_term = (Token.t (* "~" *) option * simple_type)
@@ -392,10 +397,7 @@ and interface_body = [
       * anon_choice_param_list_29faba4 option
     )
   | `Inte_type_name of interface_type_name
-  | `Cons_elem of (
-        constraint_term
-      * (Token.t (* "|" *) * constraint_term) list (* zero or more *)
-    )
+  | `Cons_elem of constraint_elem
   | `Struct_elem of (
         struct_term
       * (Token.t (* "|" *) * struct_term) list (* zero or more *)
@@ -423,8 +425,6 @@ and map_type = (
     Token.t (* "map" *) * Token.t (* "[" *) * type_ * Token.t (* "]" *)
   * type_
 )
-
-and parameter_declaration = (field_name_list option * type_)
 
 and parameter_list = (
     Token.t (* "(" *)
@@ -609,10 +609,16 @@ and type_case = (
   * statement_list option
 )
 
+and type_parameter_declaration = (
+    identifier (*tok*)
+  * (Token.t (* "," *) * identifier (*tok*)) list (* zero or more *)
+  * [ `Choice_simple_type of type_ | `Cons_elem of constraint_elem ]
+)
+
 and type_parameter_list = (
     Token.t (* "[" *)
-  * parameter_declaration
-  * (Token.t (* "," *) * parameter_declaration) list (* zero or more *)
+  * type_parameter_declaration
+  * (Token.t (* "," *) * type_parameter_declaration) list (* zero or more *)
   * Token.t (* "," *) option
   * Token.t (* "]" *)
 )
@@ -782,11 +788,6 @@ type const_declaration (* inlined *) = (
     ]
 )
 
-type constraint_elem (* inlined *) = (
-    constraint_term
-  * (Token.t (* "|" *) * constraint_term) list (* zero or more *)
-)
-
 type dec_statement (* inlined *) = (expression * Token.t (* "--" *))
 
 type defer_statement (* inlined *) = (Token.t (* "defer" *) * expression)
@@ -858,6 +859,8 @@ type method_spec (* inlined *) = (
   * parameter_list
   * anon_choice_param_list_29faba4 option
 )
+
+type parameter_declaration (* inlined *) = (field_name_list option * type_)
 
 type parenthesized_expression (* inlined *) = (
     Token.t (* "(" *) * expression * Token.t (* ")" *)

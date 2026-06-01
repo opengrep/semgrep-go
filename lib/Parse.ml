@@ -1260,15 +1260,34 @@ let children_regexps : (string * Run.exp option) list = [
       |];
     ];
   );
+  "type_parameter_declaration",
+  Some (
+    Seq [
+      Token (Name "identifier");
+      Repeat (
+        Seq [
+          Token (Literal ",");
+          Token (Name "identifier");
+        ];
+      );
+      Alt [|
+        Alt [|
+          Token (Name "simple_type");
+          Token (Name "parenthesized_type");
+        |];
+        Token (Name "constraint_elem");
+      |];
+    ];
+  );
   "type_parameter_list",
   Some (
     Seq [
       Token (Literal "[");
-      Token (Name "parameter_declaration");
+      Token (Name "type_parameter_declaration");
       Repeat (
         Seq [
           Token (Literal ",");
-          Token (Name "parameter_declaration");
+          Token (Name "type_parameter_declaration");
         ];
       );
       Opt (
@@ -4370,6 +4389,52 @@ and trans_type_declaration ((kind, body) : mt) : CST.type_declaration =
       )
   | Leaf _ -> assert false
 
+and trans_type_parameter_declaration ((kind, body) : mt) : CST.type_parameter_declaration =
+  match body with
+  | Children v ->
+      (match v with
+      | Seq [v0; v1; v2] ->
+          (
+            trans_identifier (Run.matcher_token v0),
+            Run.repeat
+              (fun v ->
+                (match v with
+                | Seq [v0; v1] ->
+                    (
+                      Run.trans_token (Run.matcher_token v0),
+                      trans_identifier (Run.matcher_token v1)
+                    )
+                | _ -> assert false
+                )
+              )
+              v1
+            ,
+            (match v2 with
+            | Alt (0, v) ->
+                `Choice_simple_type (
+                  (match v with
+                  | Alt (0, v) ->
+                      `Simple_type (
+                        trans_simple_type (Run.matcher_token v)
+                      )
+                  | Alt (1, v) ->
+                      `Paren_type (
+                        trans_parenthesized_type (Run.matcher_token v)
+                      )
+                  | _ -> assert false
+                  )
+                )
+            | Alt (1, v) ->
+                `Cons_elem (
+                  trans_constraint_elem (Run.matcher_token v)
+                )
+            | _ -> assert false
+            )
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
 and trans_type_parameter_list ((kind, body) : mt) : CST.type_parameter_list =
   match body with
   | Children v ->
@@ -4377,14 +4442,14 @@ and trans_type_parameter_list ((kind, body) : mt) : CST.type_parameter_list =
       | Seq [v0; v1; v2; v3; v4] ->
           (
             Run.trans_token (Run.matcher_token v0),
-            trans_parameter_declaration (Run.matcher_token v1),
+            trans_type_parameter_declaration (Run.matcher_token v1),
             Run.repeat
               (fun v ->
                 (match v with
                 | Seq [v0; v1] ->
                     (
                       Run.trans_token (Run.matcher_token v0),
-                      trans_parameter_declaration (Run.matcher_token v1)
+                      trans_type_parameter_declaration (Run.matcher_token v1)
                     )
                 | _ -> assert false
                 )
